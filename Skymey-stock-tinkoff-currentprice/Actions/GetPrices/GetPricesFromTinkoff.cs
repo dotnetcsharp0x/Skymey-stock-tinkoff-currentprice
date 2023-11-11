@@ -52,36 +52,60 @@ namespace Skymey_stock_tinkoff_currentprice.Actions.GetPrices
                     StockPrices sp = new StockPrices();
                     sp._id = ObjectId.GenerateNewId();
                     sp.Figi = item.Figi;
+                    int multi=1;
                     if (sp.Ticker == null)
                     {
-                        var ticker = (from i in find_shares where i.figi == item.Figi select i).FirstOrDefault();
-                        if (ticker != null) sp.Ticker = ticker.ticker;
+                        var ticker = (from i in find_shares where i.figi == item.Figi select i).AsNoTracking().FirstOrDefault();
+                        if (ticker != null)
+                        {
+                            sp.Ticker = ticker.ticker;
+                            sp.Currency = ticker.currency;
+                        }
                     }
                     if (sp.Ticker == null)
                     {
-                        var ticker = (from i in find_bonds where i.figi == item.Figi select i).FirstOrDefault();
-                        if (ticker != null) sp.Ticker = ticker.ticker;
+                        var ticker = (from i in find_bonds where i.figi == item.Figi select i).AsNoTracking().FirstOrDefault();
+                        if (ticker != null)
+                        {
+                            sp.Ticker = ticker.ticker;
+                            multi = 10;
+                            sp.Currency = ticker.currency;
+                        }
                     }
                     if (sp.Ticker == null)
                     {
-                        var ticker = (from i in find_etf where i.figi == item.Figi select i).FirstOrDefault();
-                        if (ticker != null) sp.Ticker = ticker.ticker;
+                        var ticker = (from i in find_etf where i.figi == item.Figi select i).AsNoTracking().FirstOrDefault();
+                        if (ticker != null)
+                        {
+                            sp.Ticker = ticker.ticker;
+                            sp.Currency = ticker.currency;
+                        }
                     }
                     if (sp.Ticker == null)
                     {
-                        var ticker = (from i in find_futures where i.figi == item.Figi select i).FirstOrDefault();
-                        if (ticker != null) sp.Ticker = ticker.ticker;
+                        var ticker = (from i in find_futures where i.figi == item.Figi select i).AsNoTracking().FirstOrDefault();
+                        if (ticker != null)
+                        {
+                            sp.Ticker = ticker.ticker;
+                            sp.Currency = ticker.currency;
+                        }
                     }
                     if (sp.Ticker != null)
                     {
-                        sp.Price = Convert.ToDouble(item.Price);
+                        sp.Price = Convert.ToDouble(item.Price)* multi;
                         sp.Update = DateTime.UtcNow;
                         _db.StockPrices.Add(sp);
                     }
                 }
                 else
                 {
-                    find_in_db.Price = (Convert.ToDouble(item.Price) + find_in_db.Price) / 2;
+                    int multi = 1;
+                    var ticker = (from i in find_bonds where i.figi == item.Figi select i).AsNoTracking().FirstOrDefault();
+                    if (ticker != null)
+                    {
+                        multi = 10;
+                    }
+                    find_in_db.Price = ((Convert.ToDouble(item.Price)*multi) + find_in_db.Price) / 2;
                     find_in_db.Update = DateTime.UtcNow;
                 }
             }
